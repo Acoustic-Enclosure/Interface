@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
+  --lightBlack: #1E2022;
+  --lighterBlack: #494C50;
+  --purple: #6E56BB;
+  --rosyBrown: #C5929B;
+  --green: #BBDBB4;
+  --yellow: #FCF0CC;
+  --red: #FF9999;
+  --layout-cols: auto repeat(4, 1fr);
+  --layout-rows: repeat(6, 1fr);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  height: 100vh;
+  width: 100vw;
+}

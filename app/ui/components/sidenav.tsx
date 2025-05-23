@@ -2,15 +2,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LuListMusic } from "react-icons/lu";
 import { FiSettings, FiClock } from "react-icons/fi";
+import { RiSoundModuleLine } from "react-icons/ri";
 import { BsGraphUp } from "react-icons/bs";
 export default function Sidenav() {
   const pathname = usePathname();
 
   const links = [
-    { href: "/", label: "Lectura Actual", icon: <BsGraphUp /> },
-    { href: "/treatment", label: "Acondicionamiento", icon: <LuListMusic /> },
-    { href: "/manual-control", label: "Control Manual", icon: <FiSettings /> },
-    { href: "/history", label: "Historial", icon: <FiClock /> },
+    { href: "/", label: "Current Reading", icon: <LuListMusic /> },
+    { href: "/treatment", label: "New Treatment", icon: <RiSoundModuleLine /> },
+    { href: "/history", label: "History", icon: <FiClock /> },
+    { href: "/manual-control", label: "Manual Control", icon: <FiSettings /> },
+    { href: "/control-graphics", label: "Control Graphics", icon: <BsGraphUp /> },
   ];
 
   return (

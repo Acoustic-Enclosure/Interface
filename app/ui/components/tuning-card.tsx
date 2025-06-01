@@ -3,6 +3,7 @@
 import { format } from 'date-fns';
 import TuningChart from './tuning-chart';
 import { Tuning } from '../../control-graphics/page';
+import Link from 'next/link';
 
 interface TuningCardProps {
     tuning: Tuning;
@@ -69,8 +70,16 @@ export default function TuningCard({ tuning }: TuningCardProps) {
                 output={tuning.output}
                 />
             </div>
-            <div className="text-xs text-gray-400">
-                <p>Data points: {tuning.setpoint.length}</p>
+            <div className="flex items-center justify-between mt-2">
+                <div className="text-xs text-gray-400">
+                    <p>Data points: {tuning.setpoint.length}</p>
+                </div>
+                <Link 
+                    href={`/control-graphics/${tuning._id}`}
+                    className="px-2 py-1 bg-purple rounded-md hover:bg-opacity-90 text-xs"
+                >
+                    View Details
+                </Link>
             </div>
         </div>
     );

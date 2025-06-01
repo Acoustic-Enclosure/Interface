@@ -15,10 +15,10 @@ export default function Connection() {
   };
 
   return (
-    <section className="bg-lightBlack px-6 py-8 w-full h-full col-span-2 rounded-3xl flex flex-col">
-      <h2 className="text-xl font-bold mb-4">Connection Status</h2>
-      
-      <div className="flex items-center space-x-3 mb-6">
+    <section className="bg-lightBlack px-8 py-4 w-full h-full col-span-2 rounded-3xl flex flex-col">
+      <h2 className="text-xl font-bold mb-2">Connection Status</h2>
+
+      <div className="flex items-center space-x-3">
         <div className={`w-4 h-4 rounded-full ${getStatusColor()}`}></div>
         <span className="text-lg capitalize">{connectionStatus}</span>
       </div>

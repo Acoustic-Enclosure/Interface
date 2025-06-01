@@ -50,7 +50,9 @@ export function MQTTProvider({ children }: MQTTProviderProps): React.ReactElemen
       setConnectionStatus('connecting');
       
       client = mqtt.connect(`${brokerUrl}/mqtt`, { 
-        clientId: 'NEXTJS_APP_CLIENT'
+        clientId: 'NEXTJS_APP_CLIENT',
+        username: 'client',
+        password: 'client',
       });
 
       client.on('connect', () => {

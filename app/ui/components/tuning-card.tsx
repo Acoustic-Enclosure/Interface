@@ -58,8 +58,8 @@ export default function TuningCard({ tuning }: TuningCardProps) {
                     </p>
                 )}
                 <p>
-                    <span className="font-semibold">PID Values:</span> Kp={tuning.kGains.kp.toFixed(2)},
-                    Ki={tuning.kGains.ki.toFixed(2)}, Kd={tuning.kGains.kd.toFixed(2)}
+                    <span className="font-semibold">PID Values:</span> Kp={tuning.kGains.kp?.toFixed(2)},
+                    Ki={tuning.kGains.ki?.toFixed(2)}, Kd={tuning.kGains.kd?.toFixed(2)}
                 </p>
             </div>
             <div className="h-64 mb-4">

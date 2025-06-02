@@ -111,9 +111,9 @@ export default function Manual() {
   const getDeviceIdForMotor = (motorId: number) => {
     if (motorId <= 2) return "NODEMCU_01";
     if (motorId <= 4) return "NODEMCU_02";
-    if (motorId <= 6) return "NODEMCU_03";
-    if (motorId <= 8) return "NODEMCU_04";
-    return "NODEMCU_05"; // For motor 9
+    if (motorId == 5) return "NODEMCU_03";
+    if (motorId <= 7) return "NODEMCU_04";
+    return "NODEMCU_05";
   };
 
   // Generate 9-motor grid items

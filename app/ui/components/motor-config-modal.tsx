@@ -29,10 +29,10 @@ export default function MotorConfigModal({ motorId, onClose }: MotorConfigModalP
         if (key === 'NODEMCU_02-1') return "3";
         if (key === 'NODEMCU_02-2') return "4";
         if (key === 'NODEMCU_03-1') return "5";
-        if (key === 'NODEMCU_03-2') return "6";
-        if (key === 'NODEMCU_04-1') return "7";
-        if (key === 'NODEMCU_04-2') return "8";
-        else return "9"; // For motor 9
+        if (key === 'NODEMCU_04-1') return "6";
+        if (key === 'NODEMCU_04-2') return "7";
+        if (key === 'NODEMCU_05-1') return "8";
+        if (key === 'NODEMCU_05-2') return "9";
     };
 
     // Fetch current PID configuration when modal opens

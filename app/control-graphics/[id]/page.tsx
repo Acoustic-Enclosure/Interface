@@ -56,10 +56,10 @@ export default function TuningDetail() {
             'NODEMCU_02-1': '3',
             'NODEMCU_02-2': '4',
             'NODEMCU_03-1': '5',
-            'NODEMCU_03-2': '6',
-            'NODEMCU_04-1': '7',
-            'NODEMCU_04-2': '8',
-            'NODEMCU_05-1': '9',
+            'NODEMCU_04-1': '6',
+            'NODEMCU_04-2': '7',
+            'NODEMCU_05-1': '8',
+            'NODEMCU_05-2': '9',
         };
 
         const motorNumber = deviceMotorMap[`${deviceId}-${motorId}`]

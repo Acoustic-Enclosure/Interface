@@ -19,10 +19,10 @@ export default function FilterBar({ filters, onFilterChange }: FilterBarProps) {
         3: { keys: 'NODEMCU_02-1' },
         4: { keys: 'NODEMCU_02-2' },
         5: { keys: 'NODEMCU_03-1' },
-        6: { keys: 'NODEMCU_03-2' },
-        7: { keys: 'NODEMCU_04-1' },
-        8: { keys: 'NODEMCU_04-2' },
-        9: { keys: 'NODEMCU_05-1' },
+        6: { keys: 'NODEMCU_04-1' },
+        7: { keys: 'NODEMCU_04-2' },
+        8: { keys: 'NODEMCU_05-1' },
+        9: { keys: 'NODEMCU_05-2' },
     }), []);
     const [selectedMotors, setSelectedMotors] = useState<number[]>([]);
     const availableMotors = [1, 2, 3, 4, 5, 6, 7, 8, 9];

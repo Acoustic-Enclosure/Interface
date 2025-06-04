@@ -1,44 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import TuningDetailChart from '../../ui/components/tuning-detail-chart';
-import { Tuning } from '../page';
+import { useTuning } from '../../context/TuningContext';
 
 export default function TuningDetail() {
-    const params = useParams();
+    const { selectedTuning: tuning, loading, error } = useTuning();
     const router = useRouter();
-    const [tuning, setTuning] = useState<Tuning | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    useEffect(() => {
-        async function fetchTuningDetail() {
-            if (!params.id) return;
-
-            try {
-                const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_REST_API}/tunings/${params.id}`
-                );
-
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch tuning: ${response.status}`);
-                }
-
-                const responseData = await response.json();
-                setTuning(responseData);
-                setError(null);
-            } catch (err) {
-                console.error('Error fetching tuning detail:', err);
-                setError('Failed to load tuning data. Please try again.');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchTuningDetail();
-    }, [params.id]);
+    
+    // For back navigation
+    const handleBack = () => {
+        router.push('/control-graphics');
+    };
 
     const formatDateTime = (dateString: string) => {
         try {
@@ -70,7 +44,7 @@ export default function TuningDetail() {
         <section className="h-full">
             <div className="flex items-center mb-6">
                 <button 
-                    onClick={() => router.back()}
+                    onClick={handleBack}
                     className="mr-4 px-3 py-1 bg-lighterBlack hover:bg-gray-700 rounded-md"
                 >
                     &larr; Back

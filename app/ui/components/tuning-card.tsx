@@ -3,7 +3,7 @@
 import { format } from 'date-fns';
 import TuningChart from './tuning-chart';
 import { Tuning } from '../../control-graphics/page';
-import Link from 'next/link';
+import { useTuning } from '../../context/TuningContext';
 
 interface TuningCardProps {
     tuning: Tuning;
@@ -27,6 +27,8 @@ const MapToMotorNumber = (deviceId: string, motorId: number): string => {
 }
 
 export default function TuningCard({ tuning }: TuningCardProps) {
+    const { selectTuningById } = useTuning();
+
     const formatDateTime = (dateString: string) => {
         try {
             return format(new Date(dateString), 'MMM d, yyyy HH:mm:ss');
@@ -34,6 +36,10 @@ export default function TuningCard({ tuning }: TuningCardProps) {
             console.error('Error formatting date:', e);
             return 'Invalid date';
         }
+    };
+
+    const handleViewDetails = () => {
+        selectTuningById(tuning._id);
     };
 
     return (
@@ -74,12 +80,12 @@ export default function TuningCard({ tuning }: TuningCardProps) {
                 <div className="text-xs text-gray-400">
                     <p>Data points: {tuning.setpoint.length}</p>
                 </div>
-                <Link 
-                    href={`/control-graphics/${tuning._id}`}
+                <button
+                    onClick={handleViewDetails}
                     className="px-2 py-1 bg-purple rounded-md hover:bg-opacity-90 text-xs"
                 >
                     View Details
-                </Link>
+                </button>
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { playAndRecord, audioBufferToWav } from '../utils/audio-services';
 
 // Define room dimensions interface
 interface RoomDimensions {
@@ -20,6 +21,9 @@ interface AcousticParams {
 }
 
 export default function Treatment() {
+  const [processingStatus, setProcessingStatus] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const roomDim = {
     length: 5,
     width: 4,
@@ -67,7 +71,6 @@ export default function Treatment() {
   // Handle RT60 slider change
   const handleRT60Change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newRT60 = parseFloat(e.target.value);
-    console.log(`RT60 changed to: ${newRT60}s`);
     setRt60(newRT60);
   };
 
@@ -167,6 +170,83 @@ export default function Treatment() {
     }
   };
 
+  // Function to handle audio processing
+  const handleStartTreatment = async () => {
+    try {
+      setIsProcessing(true);
+      setProcessingStatus('Starting acoustic measurement...');
+
+      // Use pre-generated sweep file from backend
+      const sweepFileUrl = `${process.env.NEXT_PUBLIC_REST_API}/audio/sweepsine`; // Endpoint that serves the sweep audio file
+
+      // Play sweep and record response
+      const recordedBuffer = await playAndRecord(sweepFileUrl, setProcessingStatus);
+      if (!recordedBuffer) {
+        throw new Error('Failed to record audio');
+      }
+
+      // Convert to WAV format
+      setProcessingStatus('Processing recorded audio...');
+      const responseWavBlob = audioBufferToWav(recordedBuffer);
+
+      // Send to server for processing
+      setProcessingStatus('Sending to server for processing...');
+      const formData = new FormData();
+      formData.append('rt60', rt60.toString());
+      formData.append('responseFile', responseWavBlob, 'response.wav');
+
+      const responseFileUrl = `${process.env.NEXT_PUBLIC_REST_API}/audio/response`; // Endpoint that returns the result audio file
+      const response = await fetch(responseFileUrl, {
+        method: 'POST',
+        body: formData
+      });
+      if (!response.ok) {
+        throw new Error(`Error sending response file: ${response.status}`);
+      }
+
+      // Now wait for processing to complete
+      setProcessingStatus('Audio uploaded successfully. Waiting for processing...');
+      const processResponse = await fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/process`);
+
+      const processResult = await processResponse.json();
+      if (!processResponse.ok) {
+        throw new Error(`Process request failed with status: ${processResponse.status}`);
+      }
+
+      // Send tuning request to server
+      setProcessingStatus('Moving panels to optimal positions...');
+      const tuningResponse = await fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/tune`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            rt: processResult.rt60,
+            rtd: rt60,
+            vol: roomDim.length * roomDim.width * roomDim.height,
+          })
+        }
+      );
+      if (!tuningResponse.ok) {
+        throw new Error(`Tuning request failed with status: ${tuningResponse.status}`);
+      }
+
+      console.log('Process result:', processResult);
+      setIsProcessing(false);
+      // I'll handle updates via MQTT separately
+      // The UI will remain in a "processing" state until the MQTT service updates it
+      
+      // Keep isProcessing true until MQTT signals completion
+      // When implement MQTT, call setIsProcessing(false) when done
+
+    } catch (error) {
+      console.error('Error during acoustic measurement:', error);
+      setProcessingStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <section className="h-full">
       <div className="flex items-center mb-6 relative">
@@ -261,7 +341,21 @@ export default function Treatment() {
         );
           })}
         </div>
-        <button className="mt-6 px-6 py-4 bg-purple text-white rounded-lg hover:bg-purpleDark transition-colors w-3/4">
+        {isProcessing && (
+          <div className="my-4 p-4 bg-lightBlack rounded-lg">
+            <div className="flex items-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-purple" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>{processingStatus}</span>
+            </div>
+          </div>
+        )}
+        <button
+          className="mt-6 px-6 py-4 bg-purple text-white rounded-lg hover:bg-purpleDark transition-colors w-3/4"
+          onClick={handleStartTreatment}
+        >
           <p className="text-2xl">Start Treatment</p>
         </button>
       </div>

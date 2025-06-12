@@ -86,6 +86,8 @@ export default function TuningDetail() {
                                     <li>Kp: {tuning.kGains.kp.toFixed(2)}</li>
                                     <li>Ki: {tuning.kGains.ki.toFixed(2)}</li>
                                     <li>Kd: {tuning.kGains.kd.toFixed(2)}</li>
+                                    <li>Kv: {tuning.kGains.kv.toFixed(2)}</li>
+                                    <li>Ka: {tuning.kGains.ka.toFixed(2)}</li>
                                 </ul>
                             </div>
                             <div>

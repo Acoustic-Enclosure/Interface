@@ -121,7 +121,13 @@ export default function Manual() {
     const grid = [];
 
     for (let i = 1; i <= 9; i++) {
-      const motorId = (i % 2 === 0 ? 2 : 1).toString();
+      let motorId = '0';
+      if (i <= 5)
+        motorId = (i % 2 === 0 ? 2 : 1).toString();
+      else {
+        motorId = (i % 2 === 0 ? 1 : 2).toString();
+      }
+
       const deviceId = getDeviceIdForMotor(i);
       const key = `${deviceId}-${motorId}`;
 

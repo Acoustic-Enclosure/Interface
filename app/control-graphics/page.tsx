@@ -11,6 +11,8 @@ interface KGains {
   kp: number;
   ki: number;
   kd: number;
+  kv: number;
+  ka: number;
 }
 
 export interface Tuning {

@@ -11,12 +11,16 @@ interface PIDConfig {
     kp: number;
     ki: number;
     kd: number;
+    kv?: number; // Optional, defaults to 0.0 if not set
+    ka?: number; // Optional, defaults to 0.0 if not set
 }
 
 export default function MotorConfigModal({ motorId, onClose }: MotorConfigModalProps) {
     const [kp, setKp] = useState("0.0");
     const [ki, setKi] = useState("0.0");
     const [kd, setKd] = useState("0.0");
+    const [kv, setKv] = useState("0.0");
+    const [ka, setKa] = useState("0.0");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +57,8 @@ export default function MotorConfigModal({ motorId, onClose }: MotorConfigModalP
                 setKp(config.kp.toString());
                 setKi(config.ki.toString());
                 setKd(config.kd.toString());
+                setKv(config.kv ? config.kv.toString() : "0.0");
+                setKa(config.ka ? config.ka.toString() : "0.0");
                 setError(null);
             } catch (err) {
                 console.error("Error fetching PID configuration:", err);
@@ -70,7 +76,9 @@ export default function MotorConfigModal({ motorId, onClose }: MotorConfigModalP
         const pidConfig = {
             kp: parseFloat(kp),
             ki: parseFloat(ki),
-            kd: parseFloat(kd)
+            kd: parseFloat(kd),
+            kv: parseFloat(kv) || 0.0, // Default to 0.0 if not set
+            ka: parseFloat(ka) || 0.0, // Default to 0.0 if not set
         };
 
         // Save to database via REST API only (no MQTT publish)
@@ -148,6 +156,27 @@ export default function MotorConfigModal({ motorId, onClose }: MotorConfigModalP
                                     step="0.1"
                                     value={kd}
                                     onChange={(e) => setKd(e.target.value)}
+                                    className="bg-lighterBlack border border-gray-700 p-2 rounded w-full"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block mb-1">Velocity Gain (Kv):</label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    value={kv}
+                                    onChange={(e) => setKv(e.target.value)}
+                                    className="bg-lighterBlack border border-gray-700 p-2 rounded w-full"
+                                />
+                            </div>
+                            <div>
+                                <label className="block mb-1">Acceleration Gain (Ka):</label>
+                                <input
+                                    type="number"
+                                    step="0.1"
+                                    value={ka}
+                                    onChange={(e) => setKa(e.target.value)}
                                     className="bg-lighterBlack border border-gray-700 p-2 rounded w-full"
                                 />
                             </div>

@@ -9,7 +9,7 @@ import {
     LineElement,
     Title,
     Tooltip,
-    Legend
+    Legend,
 } from 'chart.js';
 
 // Register Chart.js components

@@ -166,8 +166,8 @@ export default function Manual() {
             />
             <button
               onClick={() => sendSetpoint(deviceId, motorId)}
-              disabled={!isDeviceConnected || isWorking}
-              className={`px-3 py-1 rounded ${!isDeviceConnected || isWorking ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple hover:bg-opacity-90'}`}
+              disabled={!isDeviceConnected || isWorking || !setpoints[key]}
+              className={`px-3 py-1 rounded ${!isDeviceConnected || isWorking || !setpoints[key] ? 'bg-gray-700 cursor-not-allowed' : 'bg-purple hover:bg-opacity-90'}`}
             >
               Set
             </button>

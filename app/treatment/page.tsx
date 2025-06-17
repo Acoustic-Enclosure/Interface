@@ -23,11 +23,13 @@ interface AcousticParams {
 export default function Treatment() {
   const [processingStatus, setProcessingStatus] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [userComment, setUserComment] = useState('');
 
   const roomDim = {
-    length: 5,
-    width: 4,
-    height: 3
+    length: 5.53,
+    width: 5.26,
+    height: 2.19
   } as RoomDimensions;
 
   const minRT60 = 0.2;
@@ -43,6 +45,11 @@ export default function Treatment() {
     C80: 0,
     G: 0
   });
+
+  // State for tunning results
+  const [finalRT, setFinalRT] = useState<number | null>(null);
+  const [initialRT, setInitialRT] = useState<number | null>(null);
+  const [treatmentId, setTreatmentId] = useState<string | null>(null);
 
   // Animation states for the other sliders
   const [animatedParams, setAnimatedParams] = useState<AcousticParams>({...params});
@@ -192,7 +199,8 @@ export default function Treatment() {
       // Send to server for processing
       setProcessingStatus('Sending to server for processing...');
       const formData = new FormData();
-      formData.append('rt60', rt60.toString());
+      formData.append('desiredRT60', rt60.toString());
+      formData.append('roomVolume', (roomDim.length * roomDim.width * roomDim.height).toString());
       formData.append('responseFile', responseWavBlob, 'response.wav');
 
       const responseFileUrl = `${process.env.NEXT_PUBLIC_REST_API}/audio/response`; // Endpoint that returns the result audio file
@@ -203,15 +211,17 @@ export default function Treatment() {
       if (!response.ok) {
         throw new Error(`Error sending response file: ${response.status}`);
       }
+      const { treatmentId } = await response.json();
+      setTreatmentId(treatmentId);
 
       // Now wait for processing to complete
       setProcessingStatus('Audio uploaded successfully. Waiting for processing...');
-      const processResponse = await fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/process`);
-
-      const processResult = await processResponse.json();
+      const processResponse = await fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/process/${treatmentId}`);
       if (!processResponse.ok) {
         throw new Error(`Process request failed with status: ${processResponse.status}`);
       }
+      const { initialRT } = await processResponse.json();
+      setInitialRT(initialRT);
 
       // Send tuning request to server
       setProcessingStatus('Moving panels to optimal positions...');
@@ -221,25 +231,41 @@ export default function Treatment() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            rt: processResult.rt60,
-            rtd: rt60,
-            vol: roomDim.length * roomDim.width * roomDim.height,
-          })
+          body: JSON.stringify({ treatmentId })
         }
       );
       if (!tuningResponse.ok) {
         throw new Error(`Tuning request failed with status: ${tuningResponse.status}`);
       }
 
-      console.log('Process result:', processResult);
-      setIsProcessing(false);
-      // I'll handle updates via MQTT separately
-      // The UI will remain in a "processing" state until the MQTT service updates it
-      
-      // Keep isProcessing true until MQTT signals completion
-      // When implement MQTT, call setIsProcessing(false) when done
+      // Now measure again to see the results of the tuning
+      setProcessingStatus('Measuring acoustic parameters after tuning...');
+      const postTuningBuffer = await playAndRecord(sweepFileUrl, setProcessingStatus);
+      if (!postTuningBuffer) {
+        throw new Error('Failed to record post-tuning audio');
+      }
 
+      const postTuningWavBlob = audioBufferToWav(postTuningBuffer);
+      const postTuningFormData = new FormData();
+      postTuningFormData.append('treatmentId', treatmentId);
+      postTuningFormData.append('finalResponseFile', postTuningWavBlob, 'final_response.wav');
+      const postTuningResponse = await fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/response/final`, {
+        method: 'POST',
+        body: postTuningFormData
+      });
+      if (!postTuningResponse.ok) {
+        throw new Error(`Post-tuning response upload failed: ${postTuningResponse.status}`);
+      }
+
+      const postTuningProcessResponse = await fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/process/final/${treatmentId}`);
+      if (!postTuningProcessResponse.ok) {
+        throw new Error(`Post-tuning process request failed: ${postTuningProcessResponse.status}`);
+      }
+      const { finalRT } = await postTuningProcessResponse.json();
+      setFinalRT(finalRT);
+
+      setShowResultModal(true);
+      setIsProcessing(false);
     } catch (error) {
       console.error('Error during acoustic measurement:', error);
       setProcessingStatus(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -359,6 +385,71 @@ export default function Treatment() {
           <p className="text-2xl">Start Treatment</p>
         </button>
       </div>
+      {showResultModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-lightBlack rounded-2xl p-8 shadow-2xl w-full max-w-md">
+            <h2 className="text-3xl font-bold mb-6 text-purple text-center">Treatment Results</h2>
+            <div className="mb-3 flex justify-between">
+              <span className="font-semibold text-gray-300">Desired RT:</span>
+              <span className="font-mono text-lg text-white">{rt60.toFixed(2)}s</span>
+            </div>
+            <div className="mb-3 flex justify-between">
+              <span className="font-semibold text-gray-300">Initial RT:</span>
+              <span className="font-mono text-lg text-white">{initialRT !== null ? initialRT.toFixed(2) : 'N/A'}s</span>
+            </div>
+            <div className="mb-6 flex justify-between">
+              <span className="font-semibold text-gray-300">Final RT:</span>
+              <span className="font-mono text-lg text-white">{finalRT !== null ? finalRT.toFixed(2) : 'N/A'}s</span>
+            </div>
+            <div className="mb-6">
+              <label className="block mb-2 font-semibold text-gray-200">Comments:</label>
+              <textarea
+                className="w-full border text-black border-gray-700 bg-darkBlack rounded-lg p-2 focus:outline-none focus:border-purple transition"
+                value={userComment}
+                onChange={e => setUserComment(e.target.value)}
+                rows={3}
+                placeholder="Share your experience..."
+              />
+            </div>
+            <div className="flex items-center justify-between gap-4">
+              <button
+                className="px-5 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition font-semibold"
+                onClick={() => {
+                  fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/qualify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      treatmentId,
+                      success: false,
+                      comment: userComment
+                    })
+                  });
+                  setShowResultModal(false)
+                }}
+              >
+                Close
+              </button>
+              <button
+                className="flex items-center px-5 py-2 bg-purple text-white rounded-lg hover:bg-purpleDark transition font-semibold"
+                onClick={() => {
+                  fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/qualify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      treatmentId,
+                      success: true,
+                      comment: userComment
+                    })
+                  });
+                  setShowResultModal(false)
+                }}
+              >
+                <span className="mr-2 text-xl">👍</span>Thumb Up
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

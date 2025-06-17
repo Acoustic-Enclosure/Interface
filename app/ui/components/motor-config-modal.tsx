@@ -95,12 +95,10 @@ export default function MotorConfigModal({ motorId, onClose }: MotorConfigModalP
                 throw new Error(`Failed to save PID configuration: ${response.status}`);
             }
 
-            console.log(`PID configuration saved for motor ${motorId}:`, pidConfig);
             onClose();
         } catch (err) {
             console.error("Error saving PID configuration:", err);
             setError("Failed to save configuration. Please try again.");
-            // Don't close the modal on error so user can try again
         }
     };
 

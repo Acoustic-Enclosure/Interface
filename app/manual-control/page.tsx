@@ -10,6 +10,7 @@ export default function Manual() {
   const [setpoints, setSetpoints] = useState<Record<string, string>>({});
   const [selectedMotor, setSelectedMotor] = useState<string | null>(null);
   const [configOpen, setConfigOpen] = useState(false);
+  const [telemetryEnabled, setTelemetryEnabled] = useState(false);
 
   // Extract device connection status from messages
   const deviceConnections = Object.entries(messages)
@@ -84,6 +85,7 @@ export default function Manual() {
         body: JSON.stringify(
           {
             setpoint: parseFloat(setpoint),
+            telemetry: telemetryEnabled
           }
         ),
       });
@@ -96,7 +98,6 @@ export default function Manual() {
     } catch (error) {
       console.error(`Failed to set setpoint for motor ${motorId}:`, error);
       throw new Error();
-      
     }
   };
 
@@ -201,7 +202,25 @@ export default function Manual() {
 
   return (
     <section>
-      <h1 className="text-4xl text-foreground mb-6">Manual Control</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-4xl text-foreground">Manual Control</h1>
+
+        <div className="flex items-center space-x-3">
+          <span className="text-sm text-gray-300">Telemetry</span>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={telemetryEnabled}
+              onChange={(e) => setTelemetryEnabled(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple"></div>
+          </label>
+          <span className={`text-sm ${telemetryEnabled ? 'text-green-400' : 'text-gray-500'}`}>
+            {telemetryEnabled ? 'ON' : 'OFF'}
+          </span>
+        </div>
+      </div>
 
       {connectionStatus !== 'connected' && (
         <div className="bg-rosyBrown bg-opacity-20 p-4 rounded-lg mb-6">
@@ -210,7 +229,7 @@ export default function Manual() {
       )}
 
       {connectionStatus === 'connected' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {renderMotorGrid()}
         </div>
       )}

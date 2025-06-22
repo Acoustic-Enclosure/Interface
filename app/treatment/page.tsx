@@ -33,10 +33,10 @@ export default function Treatment() {
   } as RoomDimensions;
 
   const minRT60 = 0.2;
-  const maxRT60 = 2.0;
+  const maxRT60 = 0.8;
 
   // State for RT60 and calculated parameters
-  const [rt60, setRt60] = useState(0.8);
+  const [rt60, setRt60] = useState(0.35);
   const [params, setParams] = useState<AcousticParams>({
     RT60: rt60,
     D50: 0,

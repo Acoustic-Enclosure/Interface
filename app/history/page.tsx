@@ -151,7 +151,7 @@ export default function History() {
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Final RT60:</span>
-                                        <span className={treatment.success ? 'text-green-400' : ''}>{treatment.finalRT60.toFixed(2)}s</span>
+                                        <span className={treatment.success ? 'text-green-400' : ''}>{treatment.finalRT60?.toFixed(2)}s</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Room Volume:</span>

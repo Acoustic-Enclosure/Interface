@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ParamTabs, ParamKey } from './ui/components/acoustic-params-tab';
 import { AnalysisChart } from './ui/components/analysis-chart';
 
@@ -33,6 +33,9 @@ export default function Home() {
     const [loadingAudio, setLoadingAudio] = useState(true);
     const [loadingAnalysis, setLoadingAnalysis] = useState(false);
 
+    // Track which treatment IDs we've already fetched analysis for
+    const fetchedAnalysisIds = useRef<Set<string>>(new Set());
+
     useEffect(() => {
         setLoadingAudio(true);
         fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio`)
@@ -47,7 +50,8 @@ export default function Home() {
         if (!latest) return;
         if (Array.isArray(latest.analysis) && latest.analysis.length > 0) {
             setAnalysis(latest.analysis);
-        } else if (latest._id) {
+        } else if (latest._id && !fetchedAnalysisIds.current.has(latest._id) && !loadingAnalysis) {
+            fetchedAnalysisIds.current.add(latest._id);
             setLoadingAnalysis(true);
             fetch(`${process.env.NEXT_PUBLIC_REST_API}/audio/analysis`, {
                 method: 'POST',
@@ -58,6 +62,10 @@ export default function Home() {
                 .then(data => {
                     if (Array.isArray(data.analysis)) setAnalysis(data.analysis);
                 })
+                .catch(error => {
+                    console.error('Failed to fetch analysis:', error);
+                    fetchedAnalysisIds.current.delete(latest._id);
+                })
                 .finally(() => setLoadingAnalysis(false));
         }
     }, [latest]);
@@ -66,7 +74,7 @@ export default function Home() {
         <section className="h-full">
             <h1 className="text-4xl mb-6">Latest Successful Treatment</h1>
             <div className="grid grid-cols-6 gap-6">
-                <div className="col-span-2">
+                <div className="col-span-2 h-full p-6">
                     {loadingAudio ? (
                         <div className="text-gray-400 text-center py-8">Loading treatment...</div>
                     ) : latest ? (
@@ -81,7 +89,7 @@ export default function Home() {
                                 <span className="font-semibold text-gray-300">Final RT:</span> {latest.finalRT60.toFixed(2)}s
                             </div>
                             <div>
-                                <span className="font-semibold text-gray-300">Room Volume:</span> {latest.roomVolume} m³
+                                <span className="font-semibold text-gray-300">Room Volume:</span> {latest.roomVolume.toFixed(2)} m³
                             </div>
                             <div>
                                 <span className="font-semibold text-gray-300">Date:</span> {new Date(latest.createdAt).toLocaleString()}

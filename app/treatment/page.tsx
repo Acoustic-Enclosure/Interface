@@ -32,18 +32,18 @@ export default function Treatment() {
     height: 2.19
   } as RoomDimensions;
 
-  const minRT60 = 0.2;
-  const maxRT60 = 0.8;
+  const minRT60 = 0.1;
+  const maxRT60 = 0.4;
 
   // State for RT60 and calculated parameters
-  const [rt60, setRt60] = useState(0.35);
+  const [rt60, setRt60] = useState(0.3);
   const [params, setParams] = useState<AcousticParams>({
     RT60: rt60,
-    D50: 0,
-    D80: 0,
-    C50: 0,
-    C80: 0,
-    G: 0
+    D50: 1,
+    D80: 1,
+    C50: 20,
+    C80: 32,
+    G: -22.5
   });
 
   // State for tunning results
@@ -155,9 +155,9 @@ export default function Treatment() {
   const parameterRanges = {
     D50: { min: 0, max: 1 },
     D80: { min: 0, max: 1 },
-    C50: { min: -15, max: 15 },
-    C80: { min: -5, max: 20 },
-    G: { min: -15, max: 15 }
+    C50: { min: 10, max: 60 },
+    C80: { min: 20, max: 100 },
+    G: { min: -35, max: -20 }
   };
   
   // Format parameter values for display
